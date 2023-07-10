@@ -1,7 +1,10 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Todo.Data;
 using Todo.Data.Entities;
+using Todo.Models.TodoLists;
 
 namespace Todo.Services
 {
@@ -14,10 +17,11 @@ namespace Todo.Services
                 .Where(tl => tl.Owner.Id == userId);
         }
 
-        public static TodoList SingleTodoList(this ApplicationDbContext dbContext, int todoListId)
+        public static TodoList SingleTodoList(this ApplicationDbContext dbContext, int todoListId, TodoListDetailFilter filter = default)
         {
+            filter ??= new TodoListDetailFilter();
             return dbContext.TodoLists.Include(tl => tl.Owner)
-                .Include(tl => tl.Items)
+                .Include(tl => tl.Items.Where(x => filter.HideDoneItems == false || x.IsDone == false))
                 .ThenInclude(ti => ti.ResponsibleParty)
                 .Single(tl => tl.TodoListId == todoListId);
         }

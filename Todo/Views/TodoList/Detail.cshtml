@@ -1,10 +1,12 @@
 ﻿@using Todo.Controllers
 @using Todo.Data.Entities
+@using Todo.Models.TodoLists
 @using Todo.Services
 @model Todo.Models.TodoLists.TodoListDetailViewmodel
 
 @{
     ViewData["Title"] = $"List: {Model.Title}";
+    var filter = ViewData[Constants.Filter] is TodoListDetailFilter parsed ? parsed : new TodoListDetailFilter();
 }
 
 <h2>@ViewData["Title"]</h2>
@@ -17,6 +19,13 @@
             <a asp-action="Create" asp-controller="TodoItem" asp-route-todoListId="@Model.TodoListId">
                 <strong>Add New Item</strong>
             </a>
+            <div class="form-group">
+                <form asp-action="Detail" method="get">
+                    @Html.HiddenFor(x => x.TodoListId)
+                    @Html.CheckBoxFor(_ => filter.HideDoneItems, new { @onchange = "this.form.submit()"})
+                    @Html.LabelFor(_ => filter.HideDoneItems)
+                </form>
+            </div>
         </li>
 
         @foreach (var item in Model.Items.OrderBy(x => x.Importance))
@@ -36,31 +45,31 @@
             }
 
             <li class="list-group-item @contextualClass">
-                
+
                 <div class="row">
 
-                <div class="col-md-8">
-                    <a asp-action="Edit" asp-controller="TodoItem" asp-route-todoItemId="@item.TodoItemId">
+                    <div class="col-md-8">
+                        <a asp-action="Edit" asp-controller="TodoItem" asp-route-todoItemId="@item.TodoItemId">
 
-                        @if (item.IsDone)
-                        {
-                            <s>@item.Title</s>
-                        }
-                        else
-                        {
-                            <text>@item.Title</text>
-                        }
-                    </a>
-                </div>
+                            @if (item.IsDone)
+                            {
+                                <s>@item.Title</s>
+                            }
+                            else
+                            {
+                                <text>@item.Title</text>
+                            }
+                        </a>
+                    </div>
 
-                <div class="col-md-4 text-right">
-                    <small>
-                        @item.ResponsibleParty.UserName
+                    <div class="col-md-4 text-right">
+                        <small>
+                            @item.ResponsibleParty.UserName
 
-                        <img src="https://www.gravatar.com/avatar/@Gravatar.GetHash(item.ResponsibleParty.Email)?s=30"/>
+                            <img src="https://www.gravatar.com/avatar/@Gravatar.GetHash(item.ResponsibleParty.Email)?s=30" />
 
-                    </small>
-                </div>
+                        </small>
+                    </div>
                 </div>
 
             </li>
