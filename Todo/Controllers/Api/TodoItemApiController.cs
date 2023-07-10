@@ -56,5 +56,26 @@ namespace Todo.Controllers.Api
             return Created(Url.Action("Get", "TodoItemApi", new { todoItemId = item.TodoItemId }), item.TodoItemId);
         }
 
+        [HttpPatch]
+        public async Task<IActionResult> UpdateRank(int todoItemId, int rank)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState.Values);
+            }
+
+            var item = await dbContext.TodoItems.FindAsync(todoItemId);
+            if (item is null)
+            {
+                return BadRequest(nameof(todoItemId));
+            }
+
+            item.Rank = rank;
+            await dbContext.SaveChangesAsync();
+
+            return Ok();
+        }
+
+
     }
 }

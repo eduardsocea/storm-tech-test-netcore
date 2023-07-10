@@ -41,7 +41,7 @@
                         @Html.DropDownListFor(
                         _ => orderBy.Rank,
                         new[] { new SelectListItem("", "")}.Concat(Html.GetEnumSelectList<OrderByType>()),
-                        new {@class="form-control", @onchange = "this.form.submit()"}
+                        new { @class="form-control" }
                         )
                     </div>
                 </form>
@@ -59,6 +59,18 @@
 @section Scripts
 {
 <script type="text/javascript">
+    $("#orderBy_Rank").change(function() {
+        var orderBy = this.value; 
+        var items = $('.list-group>.list-group-item[data-rank]');
+        var orderedItems = items.toArray().sort(function(left, right) {
+            let leftVal = parseInt(left.getAttribute('data-rank'));
+            let rightVal = parseInt(right.getAttribute('data-rank'));
+            return orderBy == 0 ? leftVal - rightVal : rightVal - leftVal;
+        });
+        items.remove();
+        $('.list-group').append(orderedItems);
+    })
+
     $("#createTodoListItem").click(function() {
         function addCreatedTodoListItem(todoListItemId){
             $.ajax({
