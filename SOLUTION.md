@@ -15,3 +15,6 @@ The change of username directly in database is having a broader impact which req
 If changing the value of the username directly in database is not an option, an alternative is a custom implementation of `IUserClaimsPrincipalFactory<TUser>`.
 
 If taking the username from Claims is not wanted, we can just cache/create a new datapoint in database to store the Gravatar Username.
+
+# Task #9/#10
+- For convenience, I decided to put all the Javascript code directly in the .cshtml files. For a production ready application, all the javascript code would be moved in separated files, minified and having the locals renamed. 
