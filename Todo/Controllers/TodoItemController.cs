@@ -65,6 +65,13 @@ namespace Todo.Controllers
             return RedirectToListDetail(todoItem.TodoListId);
         }
 
+        [HttpGet]
+        public IActionResult GetTodoItemSummary(int todoItemId)
+        {
+            var todoItem = dbContext.SingleTodoItem(todoItemId);
+            return ViewComponent("TodoItemSummary", TodoItemSummaryViewmodelFactory.Create(todoItem));
+        }
+
         private RedirectToActionResult RedirectToListDetail(int fieldsTodoListId)
         {
             return RedirectToAction("Detail", "TodoList", new {todoListId = fieldsTodoListId});

@@ -28,7 +28,7 @@ namespace Todo.Services
 
         public static TodoItem SingleTodoItem(this ApplicationDbContext dbContext, int todoItemId)
         {
-            return dbContext.TodoItems.Include(ti => ti.TodoList).Single(ti => ti.TodoItemId == todoItemId);
+            return dbContext.TodoItems.Include(ti => ti.TodoList).Include(x => x.ResponsibleParty).Single(ti => ti.TodoItemId == todoItemId);
         }
     }
 }

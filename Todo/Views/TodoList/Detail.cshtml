@@ -1,5 +1,6 @@
 ﻿@using Todo.Controllers
 @using Todo.Data.Entities
+@using Todo.Models.TodoItems
 @using Todo.Models.TodoLists
 @using Todo.Services
 @model Todo.Models.TodoLists.TodoListDetailViewmodel
@@ -25,9 +26,8 @@
     <ul class="list-group">
 
         <li class="list-group-item">
-            <a asp-action="Create" asp-controller="TodoItem" asp-route-todoListId="@Model.TodoListId">
-                <strong>Add New Item</strong>
-            </a>
+            @await Component.InvokeAsync("TodoItemCreateFields", new TodoItemCreateFields { TodoListTitle = Model.Title})
+
             <div class="form-group">
                 <form asp-action="Detail" method="get">
                     @Html.HiddenFor(x => x.TodoListId)
@@ -39,61 +39,73 @@
                     <div class="form-group">
                         @Html.LabelFor(_ => orderBy.Rank)
                         @Html.DropDownListFor(
-                            _ => orderBy.Rank,
-                            new[] { new SelectListItem("", "")}.Concat(Html.GetEnumSelectList<OrderByType>()),
-                            new {@class="form-control", @onchange = "this.form.submit()"}
+                        _ => orderBy.Rank,
+                        new[] { new SelectListItem("", "")}.Concat(Html.GetEnumSelectList<OrderByType>()),
+                        new {@class="form-control", @onchange = "this.form.submit()"}
                         )
                     </div>
-
                 </form>
             </div>
         </li>
 
         @foreach (var item in items)
         {
-            string contextualClass;
-            switch (item.Importance)
-            {
-                case Importance.High:
-                    contextualClass = "list-group-item-danger";
-                    break;
-                case Importance.Low:
-                    contextualClass = "list-group-item-info";
-                    break;
-                default:
-                    contextualClass = "";
-                    break;
-            }
-
-            <li class="list-group-item @contextualClass">
-
-                <div class="row">
-
-                    <div class="col-md-8">
-                        <a asp-action="Edit" asp-controller="TodoItem" asp-route-todoItemId="@item.TodoItemId">
-
-                            @if (item.IsDone)
-                            {
-                                <s>@item.Title</s>
-                            }
-                            else
-                            {
-                                <text>@item.Title</text>
-                            }
-                        </a>
-                    </div>
-
-                    <div class="col-md-4 text-right">
-                        <small>
-                            @item.ResponsibleParty.UserName
-
-                            <img src="https://www.gravatar.com/avatar/@Gravatar.GetHash(item.ResponsibleParty.Email)?s=30" />
-
-                        </small>
-                    </div>
-                </div>
-
-            </li>
+            @await Component.InvokeAsync("TodoItemSummary", item)
         }
     </ul>
 </div>
+
+
+@section Scripts
+{
+<script type="text/javascript">
+    $("#createTodoListItem").click(function() {
+        function addCreatedTodoListItem(todoListItemId){
+            $.ajax({
+                method: "get",
+                url: `@Url.Action("GetTodoItemSummary", "TodoItem")`,
+                data: {
+                    todoItemId: todoListItemId
+                },
+                success: function(component) {
+                    $(".list-group").append(component);
+                }
+            });
+        }
+
+        $.ajax({
+            method: "post",
+            url: "@Url.Action("Create", "TodoItemApi")",
+            contentType: "application/json",
+            dataType: 'json',
+            data: JSON.stringify({
+                todoListId: "@Model.TodoListId",
+                title: $("#Title").val(),
+                importance: $("#Importance").val(),
+                responsiblePartyId: $("#ResponsiblePartyId").val()
+            }),
+            success: function(result) {
+                addCreatedTodoListItem(result);
+                $('#createListItemModal').modal('hide')
+            },
+            error: function(xhr, ajaxOptions, thrownError)
+            {
+                $("#createListItemModal .alert").empty();
+                 $("#createListItemModal .alert").show();
+                 for (const [key, value] of Object.entries(xhr.responseJSON.errors ?? [])) {
+                      $("#createListItemModal .alert").append(
+                          `<p>${value}</p>`
+                      )
+                 }
+            }
+        })
+    });
+
+    $('#createListItemModal').on('hidden.bs.modal', function () {
+        $("#Title").val('');
+        $("#Importance").val('Medium');
+        $("#ResponsiblePartyId").val($("#ResponsiblePartyId>option").first().val());
+        $("#createListItemModal .alert").hide();
+    })
+</script>
+}
