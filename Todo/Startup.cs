@@ -8,6 +8,8 @@ using Todo.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Todo.Services;
+using Todo.Configurations;
 
 namespace Todo
 {
@@ -35,6 +37,7 @@ namespace Todo
                     Configuration.GetConnectionString("DefaultConnection")));
 
             services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = false)
+                .AddSignInManager<EmailSignInManager>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             services.AddControllers();
@@ -45,6 +48,10 @@ namespace Todo
                     .RequireAuthenticatedUser()
                     .Build();
             });
+
+            services.Configure<GravatarOptions>(Configuration.GetSection(GravatarOptions.Section));
+            services.AddScoped<IGravatarClient, GravatarClient>();
+            services.AddHostedService<UsernameSeedingService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
