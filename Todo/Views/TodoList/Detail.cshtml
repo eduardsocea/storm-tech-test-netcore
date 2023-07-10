@@ -6,7 +6,16 @@
 
 @{
     ViewData["Title"] = $"List: {Model.Title}";
-    var filter = ViewData[Constants.Filter] is TodoListDetailFilter parsed ? parsed : new TodoListDetailFilter();
+    var filter = ViewData[Constants.Filter] is TodoListDetailFilter parsedFilter ? parsedFilter : new TodoListDetailFilter();
+    var orderBy = ViewData[Constants.OrderBy] is TodoListDetailOrder parsedOrderBy ? parsedOrderBy : new TodoListDetailOrder();
+
+    var items = Model.Items.AsEnumerable();
+    items = orderBy.Rank switch
+    {
+        OrderByType.Ascending => items.OrderBy(x => x.Rank),
+        OrderByType.Descending => items.OrderByDescending(x => x.Rank),
+        _ => items.OrderBy(x => x.Importance)
+    };
 }
 
 <h2>@ViewData["Title"]</h2>
@@ -22,13 +31,25 @@
             <div class="form-group">
                 <form asp-action="Detail" method="get">
                     @Html.HiddenFor(x => x.TodoListId)
-                    @Html.CheckBoxFor(_ => filter.HideDoneItems, new { @onchange = "this.form.submit()"})
-                    @Html.LabelFor(_ => filter.HideDoneItems)
+                    <div class="form-group">
+                        @Html.CheckBoxFor(_ => filter.HideDoneItems, new { @onchange = "this.form.submit()"})
+                        @Html.LabelFor(_ => filter.HideDoneItems)
+
+                    </div>
+                    <div class="form-group">
+                        @Html.LabelFor(_ => orderBy.Rank)
+                        @Html.DropDownListFor(
+                            _ => orderBy.Rank,
+                            new[] { new SelectListItem("", "")}.Concat(Html.GetEnumSelectList<OrderByType>()),
+                            new {@class="form-control", @onchange = "this.form.submit()"}
+                        )
+                    </div>
+
                 </form>
             </div>
         </li>
 
-        @foreach (var item in Model.Items.OrderBy(x => x.Importance))
+        @foreach (var item in items)
         {
             string contextualClass;
             switch (item.Importance)

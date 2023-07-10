@@ -31,9 +31,11 @@ namespace Todo.Controllers
             return View(viewmodel);
         }
 
-        public IActionResult Detail(int todoListId, TodoListDetailFilter filter)
+        public IActionResult Detail(int todoListId, TodoListDetailFilter filter, TodoListDetailOrder orderBy)
         {
             ViewData[Constants.Filter] = filter;
+            ViewData[Constants.OrderBy] = orderBy;
+
             var todoList = dbContext.SingleTodoList(todoListId, filter);
             var viewmodel = TodoListDetailViewmodelFactory.Create(todoList);
             return View(viewmodel);
